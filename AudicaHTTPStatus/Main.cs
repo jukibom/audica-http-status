@@ -26,16 +26,45 @@ namespace AudicaHTTPStatus
 
 	public class AudicaHTTPStatus : MelonMod {
 
+		private static AudicaGameState audicaGameState;
 		private HTTPServer httpServer;
+
+		public static Patch playSong;
+		public static Patch restartSong;
+		public static Patch endSong;
 
 		public override void OnApplicationStart() {
 			Instance instance = Manager.CreateInstance("TimingAssist");
+			AudicaHTTPStatus.playSong = instance.Patch(SDK.GetClass("LaunchPanel").GetMethod("Play"), typeof(AudicaHTTPStatus).GetMethod("PlaySong"));
+			AudicaHTTPStatus.restartSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("Restart"), typeof(AudicaHTTPStatus).GetMethod("RestartSong"));
+			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
+
+			AudicaHTTPStatus.audicaGameState = new AudicaGameState();
 			this.httpServer = new HTTPServer();
 			this.httpServer.Initialise();
 		}
 
 		public override void OnApplicationQuit() {
 			this.httpServer.Shutdown();
+		}
+
+		public override void OnUpdate() {
+			AudicaHTTPStatus.audicaGameState.Update();
+		}
+
+		public static void PlaySong(IntPtr @this) {
+			AudicaHTTPStatus.playSong.InvokeOriginal(@this);
+			AudicaHTTPStatus.audicaGameState.SongStart();
+		}
+
+		public static void RestartSong(IntPtr @this) {
+			AudicaHTTPStatus.restartSong.InvokeOriginal(@this);
+			AudicaHTTPStatus.audicaGameState.SongRestart();
+		}
+
+		public static void EndSong(IntPtr @this) {
+			AudicaHTTPStatus.endSong.InvokeOriginal(@this);
+			AudicaHTTPStatus.audicaGameState.SongEnd();
 		}
 	}
 }
