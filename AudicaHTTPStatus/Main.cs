@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
@@ -32,12 +32,14 @@ namespace AudicaHTTPStatus
 		public static Patch playSong;
 		public static Patch restartSong;
 		public static Patch endSong;
+		public static Patch targetHit;
 
 		public override void OnApplicationStart() {
 			Instance instance = Manager.CreateInstance("TimingAssist");
 			AudicaHTTPStatus.playSong = instance.Patch(SDK.GetClass("LaunchPanel").GetMethod("Play"), typeof(AudicaHTTPStatus).GetMethod("PlaySong"));
 			AudicaHTTPStatus.restartSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("Restart"), typeof(AudicaHTTPStatus).GetMethod("RestartSong"));
 			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
+			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("Target").GetMethod("OnHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
 
 			AudicaHTTPStatus.audicaGameState = new AudicaGameState();
 			this.httpServer = new HTTPServer();
@@ -65,6 +67,20 @@ namespace AudicaHTTPStatus
 		public static void EndSong(IntPtr @this) {
 			AudicaHTTPStatus.endSong.InvokeOriginal(@this);
 			AudicaHTTPStatus.audicaGameState.SongEnd();
+		}
+
+		public unsafe static void TargetHit(IntPtr @this, IntPtr gun, int attackType, float aim, Vector2 targetHitPos, Vector3 intersectionPoint, float meleeVelocity, bool forceSuccessful) {
+			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
+				{
+					gun,
+					new IntPtr((void*)(&attackType)),
+					new IntPtr((void*)(&aim)),
+					new IntPtr((void*)(&targetHitPos)),
+					new IntPtr((void*)(&intersectionPoint)),
+					new IntPtr((void*)(&meleeVelocity)),
+					new IntPtr((void*)(&forceSuccessful)),
+				});
+			AudicaHTTPStatus.audicaGameState.TargetHit();
 		}
 	}
 }

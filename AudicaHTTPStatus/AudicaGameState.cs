@@ -30,5 +30,9 @@ namespace AudicaHTTPStatus {
 		public void SongEnd() {
 			MelonModLogger.Log("Song ended");
 		}
+
+		public void TargetHit() {
+			MelonModLogger.Log("Target Hit");
+		}
 	}
 }
