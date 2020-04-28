@@ -13,12 +13,10 @@ using NET_SDK.Harmony;
 using NET_SDK.Reflection;
 using System.Runtime.InteropServices;
 using UnityEngine.PostProcessing;
-using WebSocketSharp;
 
 namespace AudicaHTTPStatus
 {
-	public static class BuildInfo
-	{
+	public static class BuildInfo {
 		public const string Name = "AudicaHTTPStatus"; // Name of the Mod.  (MUST BE SET)
 		public const string Author = "jukibom"; // Author of the Mod.  (Set as null if none)
 		public const string Company = null; // Company that made the Mod.  (Set as null if none)
@@ -26,12 +24,18 @@ namespace AudicaHTTPStatus
 		public const string DownloadLink = "https://github.com/jukibom/audica-http-status"; // Download Link for the Mod.  (Set as null if none)
 	}
 
-	public class AudicaHTTPStatus : MelonMod
-	{
-		
-		public override void OnApplicationStart()
-		{
+	public class AudicaHTTPStatus : MelonMod {
+
+		private HTTPServer httpServer;
+
+		public override void OnApplicationStart() {
 			Instance instance = Manager.CreateInstance("TimingAssist");
+			this.httpServer = new HTTPServer();
+			this.httpServer.Initialise();
+		}
+
+		public override void OnApplicationQuit() {
+			this.httpServer.Shutdown();
 		}
 	}
 }
