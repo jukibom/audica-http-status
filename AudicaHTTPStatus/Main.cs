@@ -26,7 +26,7 @@ namespace AudicaHTTPStatus
 
 	public class AudicaHTTPStatus : MelonMod {
 
-		private static AudicaGameState audicaGameState;
+		private static AudicaGameStateManager audicaGameState;
 		private HTTPServer httpServer;
 
 		public static Patch playSong;
@@ -41,7 +41,7 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
 			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("Target").GetMethod("OnHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
 
-			AudicaHTTPStatus.audicaGameState = new AudicaGameState();
+			AudicaHTTPStatus.audicaGameState = new AudicaGameStateManager();
 			this.httpServer = new HTTPServer();
 			this.httpServer.Initialise();
 		}
