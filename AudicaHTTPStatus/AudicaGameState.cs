@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,12 +25,30 @@ namespace AudicaHTTPStatus {
 		public string timeElapsed;		// UTC
 		public string timeRemaining;	// UTC
 		public float progress;          // 0-1, 0 = start, 1 = end
+		public float songSpeed;			// 1 = 100%
 		public float health;
 		public int score;
-		public int combo;
+		public int scoreMultiplier;
 		public int streak;
-		public bool noFail;
+		public int highScore;
+		public bool isNoFailMode;
+		public bool isPracticeMode;
+		public bool isFullComboSoFar;
 		public List<string> modifiers;
+	}
+
+	struct AudicaTargetHitState {
+		public int targetNumber;
+		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
+		public int timingScore;
+		public int aimScore;
+		public int tick;        // TODO	ScoreKeepet.mLastTick		// too drunk for thi
+	}
+
+	struct AudicaTargetFailState {
+		public int targetNumber;
+		public string type;			// "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
+		public string reason;		// "no-fire" | "miss" | "early" | "late"
 	}
 
 	class AudicaGameStateManager {
