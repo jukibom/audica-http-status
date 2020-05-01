@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,14 +40,17 @@ namespace AudicaHTTPStatus {
 	struct AudicaTargetHitState {
 		public int targetNumber;
 		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
-		public int timingScore;
-		public int aimScore;
-		public int tick;        // TODO	ScoreKeepet.mLastTick		// too drunk for thi
+		public string hand;			// "left" | "right" | "either" | "none" (e.g. for bombs)
+		public float timingScore;
+		public float aimScore;
+		public float tick;
+		public Vector2 targetHitPosition;
 	}
 
 	struct AudicaTargetFailState {
 		public int targetNumber;
-		public string type;			// "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
+		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
+		public string hand;         // "left" | "right" | "either" | "none" (e.g. for bombs)
 		public string reason;		// "no-fire" | "miss" | "early" | "late"
 	}
 
@@ -55,6 +58,8 @@ namespace AudicaHTTPStatus {
 
 		// Audica game classes
 		public static ScoreKeeper scoreKeeper;
+		public static TargetTracker targetTracker;
+		public static GameplayStats gameplayStats;
 
 		// State containers
 		private AudicaGameState gameState;
@@ -62,6 +67,8 @@ namespace AudicaHTTPStatus {
 
 		public AudicaGameStateManager() {
 			AudicaGameStateManager.scoreKeeper = UnityEngine.Object.FindObjectOfType<ScoreKeeper>();
+			AudicaGameStateManager.targetTracker = UnityEngine.Object.FindObjectOfType<TargetTracker>();
+			AudicaGameStateManager.gameplayStats = UnityEngine.Object.FindObjectOfType<GameplayStats>();
 		}
 
 		public AudicaGameState GameState {
@@ -93,8 +100,68 @@ namespace AudicaHTTPStatus {
 			MelonModLogger.Log("Song ended");
 		}
 
-		public void TargetHit() {
-			MelonModLogger.Log("Target Hit");
+		public AudicaTargetHitState TargetHit(Vector2 targetHitPos) {
+			AudicaTargetHitState targetHit = new AudicaTargetHitState();
+			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
+
+			targetHit.targetNumber = cue.index;
+			targetHit.type = this.cueToTargetType(cue);
+			targetHit.hand = this.cueToHand(cue);
+			targetHit.timingScore = AudicaGameStateManager.gameplayStats.GetLastTimingScore();
+			targetHit.aimScore = AudicaGameStateManager.gameplayStats.GetLastAimScore();
+			targetHit.tick = cue.tick;
+			targetHit.targetHitPosition = targetHitPos;
+
+			return targetHit;
+		}
+
+		public  AudicaTargetFailState TargetMissAim() {
+			AudicaTargetFailState targetMiss = new AudicaTargetFailState();
+			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
+
+			targetMiss.targetNumber = cue.index;
+			targetMiss.type = this.cueToTargetType(cue);
+			targetMiss.hand = this.cueToHand(cue);
+			targetMiss.reason = "miss";
+			return targetMiss;
+		}
+
+		public AudicaTargetFailState TargetMissEarlyLate(int tick) {
+			AudicaTargetFailState targetMiss = new AudicaTargetFailState();
+			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
+
+			targetMiss.targetNumber = cue.index;
+			targetMiss.type = this.cueToTargetType(cue);
+			targetMiss.hand = this.cueToHand(cue);
+			targetMiss.reason = tick < cue.tick ? "early" : "late";
+		
+			return targetMiss;
+		}
+
+		private string cueToTargetType(SongCues.Cue cue) {
+			string type = "";
+			switch (cue.behavior) {
+				case Target.TargetBehavior.Melee: type = "melee"; break;
+				case Target.TargetBehavior.Standard: type = "standard"; break;
+				case Target.TargetBehavior.Hold: type = "sustain"; break;
+				case Target.TargetBehavior.Vertical: type = "vertical"; break;
+				case Target.TargetBehavior.Horizontal: type = "horizontal"; break;
+				case Target.TargetBehavior.ChainStart: type = "chain-start"; break;
+				case Target.TargetBehavior.Chain: type = "chain"; break;
+				case Target.TargetBehavior.Dodge: type = "bomb"; break;
+			}
+			return type;
+		}
+
+		private string cueToHand(SongCues.Cue cue) {
+			string hand = "";
+			switch(cue.handType) {
+				case Target.TargetHandType.Left: hand = "left"; break;
+				case Target.TargetHandType.Right: hand = "right"; break;
+				case Target.TargetHandType.Either: hand = "either"; break;
+				case Target.TargetHandType.None: hand = "none"; break;
+			}
+			return hand;
 		}
 
 		private void clearGameState() {

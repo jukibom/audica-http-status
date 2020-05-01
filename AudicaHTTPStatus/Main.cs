@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
@@ -33,13 +33,18 @@ namespace AudicaHTTPStatus
 		public static Patch restartSong;
 		public static Patch endSong;
 		public static Patch targetHit;
+		public static Patch targetMissAim;
+		public static Patch targetMissEarlyLate;
 
 		public override void OnApplicationStart() {
 			Instance instance = Manager.CreateInstance("TimingAssist");
 			AudicaHTTPStatus.playSong = instance.Patch(SDK.GetClass("LaunchPanel").GetMethod("Play"), typeof(AudicaHTTPStatus).GetMethod("PlaySong"));
 			AudicaHTTPStatus.restartSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("Restart"), typeof(AudicaHTTPStatus).GetMethod("RestartSong"));
 			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
-			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("Target").GetMethod("OnHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
+
+			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
+			AudicaHTTPStatus.targetMissAim = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetMissAim"));
+			AudicaHTTPStatus.targetMissEarlyLate = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetEarlyLate"), typeof(AudicaHTTPStatus).GetMethod("TargetMissEarlyLate"));
 
 			AudicaHTTPStatus.audicaGameState = new AudicaGameStateManager();
 			this.httpServer = new HTTPServer();
@@ -69,18 +74,31 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.audicaGameState.SongEnd();
 		}
 
-		public unsafe static void TargetHit(IntPtr @this, IntPtr gun, int attackType, float aim, Vector2 targetHitPos, Vector3 intersectionPoint, float meleeVelocity, bool forceSuccessful) {
+		public unsafe static void TargetHit(IntPtr @this, IntPtr cue, float tick, Vector2 targetHitPos) {
 			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
 				{
-					gun,
-					new IntPtr((void*)(&attackType)),
-					new IntPtr((void*)(&aim)),
-					new IntPtr((void*)(&targetHitPos)),
-					new IntPtr((void*)(&intersectionPoint)),
-					new IntPtr((void*)(&meleeVelocity)),
-					new IntPtr((void*)(&forceSuccessful)),
+					cue,
+					new IntPtr((void*)(&tick)),
+					new IntPtr((void*)(&targetHitPos))
 				});
-			AudicaHTTPStatus.audicaGameState.TargetHit();
+
+			AudicaHTTPStatus.audicaGameState.TargetHit(targetHitPos);
+		}
+
+		public unsafe static void TargetMissAim(IntPtr @this, IntPtr cue, Vector2 targetMissPos) {
+			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
+				{
+					cue,
+					new IntPtr((void*)(&targetMissPos))
+				});
+		}
+
+		public unsafe static void TargetMissEarlyLate(IntPtr @this, IntPtr cue, float tick) {
+			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
+				{
+					cue,
+					new IntPtr((void*)(&tick)),
+				});
 		}
 	}
 }
