@@ -26,7 +26,8 @@ namespace AudicaHTTPStatus {
 			// TODO: timing assist value?
 
 			songStateJSON["songName"] = songState.songName;
-			songStateJSON["songMapper"] = songState.songMapper;
+			songStateJSON["songArtist"] = songState.songArtist;
+			songStateJSON["songAuthor"] = songState.songAuthor;
 			songStateJSON["difficulty"] = songState.difficulty;
 			songStateJSON["classification"] = songState.classification;
 			songStateJSON["songLength"] = songState.songLength;

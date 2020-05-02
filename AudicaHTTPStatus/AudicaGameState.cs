@@ -18,9 +18,10 @@ namespace AudicaHTTPStatus {
 	
 	struct AudicaSongState {
 		public string songName;
-		public string songMapper;
+		public string songArtist;
+		public string songAuthor;
 		public string difficulty;       // "beginner" | "standard" | "advanced" | "expert"
-		public string classification;   // "ost" | "dlc" | "custom"
+		public string classification;   // "ost" | "dlc" | "extra" | "custom"
 		public string songLength;       // UTC
 		public string timeElapsed;      // UTC
 		public string timeRemaining;    // UTC
@@ -62,23 +63,32 @@ namespace AudicaHTTPStatus {
 		public static ScoreKeeper scoreKeeper;
 		public static TargetTracker targetTracker;
 		public static GameplayStats gameplayStats;
+		public static GameplayModifiers modifiers;
         public static PlayerPreferences prefs;
+        public static KataConfig config;
+        public static Hmx.Audio.SongMaps songMaps;
 
 		// State containers
 		private AudicaGameState gameState;
-		private AudicaSongState songState;
+        private AudicaSongState songState;
 
         private bool songPlaying = false;
+        public SongList.SongData songData { get; set; } 
 
         public AudicaGameStateManager() {
 			AudicaGameStateManager.scoreKeeper = UnityEngine.Object.FindObjectOfType<ScoreKeeper>();
 			AudicaGameStateManager.targetTracker = UnityEngine.Object.FindObjectOfType<TargetTracker>();
 			AudicaGameStateManager.gameplayStats = UnityEngine.Object.FindObjectOfType<GameplayStats>();
+            AudicaGameStateManager.modifiers = UnityEngine.Object.FindObjectOfType<GameplayModifiers>();
             AudicaGameStateManager.prefs = UnityEngine.Object.FindObjectOfType<PlayerPreferences>();
+            AudicaGameStateManager.config = UnityEngine.Object.FindObjectOfType<KataConfig>();
+            AudicaGameStateManager.songMaps = UnityEngine.Object.FindObjectOfType<Hmx.Audio.SongMaps>();
 
             this.clearGameState();
             this.clearSongState();
-		}
+            this.pollGameState();
+
+        }
 
 		public AudicaGameState GameState {
 			get {
@@ -94,14 +104,8 @@ namespace AudicaHTTPStatus {
 
         // Called every tick, don't do anything too heavy in here!
 		public void Update() {
-            this.songState.currentTick = this.songPlaying ? AudicaGameStateManager.scoreKeeper.mLastTick : 0;
-
-            // prefs (here's hoping color utility isn't dog slow!)
-            this.gameState.leftColor = ColorUtility.ToHtmlStringRGB(AudicaGameStateManager.prefs.GunColorLeft.mVal);
-            this.gameState.rightColor = ColorUtility.ToHtmlStringRGB(AudicaGameStateManager.prefs.GunColorRight.mVal);
-            this.gameState.targetSpeed = AudicaGameStateManager.prefs.TargetSpeedMultiplier.mVal;
-            this.gameState.meleeSpeed = AudicaGameStateManager.prefs.MeleeSpeedMultiplier.mVal;
-            this.gameState.aimAssist = AudicaGameStateManager.prefs.AimAssistAmount.mVal;
+            this.pollGameState();
+            this.pollSongState();
 		}
 
 		public void SongStart() {
@@ -122,8 +126,8 @@ namespace AudicaHTTPStatus {
 		public AudicaTargetHitState TargetHit(Vector2 targetHitPos) {
 			AudicaTargetHitState targetHit = new AudicaTargetHitState();
 			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
-
-			targetHit.targetIndex = cue.index;
+            
+            targetHit.targetIndex = cue.index;
 			targetHit.type = this.cueToTargetType(cue);
 			targetHit.hand = this.cueToHand(cue);
 			targetHit.timingScore = AudicaGameStateManager.gameplayStats.GetLastTimingScore();
@@ -203,6 +207,83 @@ namespace AudicaHTTPStatus {
 
         private void clearSongState() {
             this.songState = new AudicaSongState();
+
+            // this is potentially read all the time but only updates if a song is playing so we should initialise everything to actual sane values ...
+            // sigh.
+
+            this.songState.songName = "";
+            this.songState.songArtist = "";
+            this.songState.songAuthor = "";
+            this.songState.difficulty = "";
+            this.songState.classification = "";
+            this.songState.songLength = TimeSpan.FromSeconds(0).ToString();
+            this.songState.timeElapsed = TimeSpan.FromSeconds(0).ToString();
+            this.songState.timeRemaining = TimeSpan.FromSeconds(0).ToString();
+            this.songState.progress = 0;
+            this.songState.currentTick = 0;
+            this.songState.songSpeed = 1;
+            this.songState.health = 1;
+            this.songState.score = 0;
+            this.songState.scoreMultiplier = 1;
+            this.songState.streak = 0;
+            this.songState.highScore = 0;
+            this.songState.isNoFailMode = AudicaGameStateManager.prefs.NoFail.mVal;
+            this.songState.isPracticeMode = AudicaGameStateManager.config.practiceMode;
+            this.songState.isFullComboSoFar = true;
+            this.songState.modifiers = AudicaGameStateManager.modifiers.GetCurrentModifiers()
+                .Select((GameplayModifiers.Modifier mod) => GameplayModifiers.GetModifierString(mod))
+                .ToList<string>();
+        }
+
+        private void pollGameState() {
+            // prefs (here's hoping color utility isn't dog slow!)
+            this.gameState.leftColor = ColorUtility.ToHtmlStringRGB(AudicaGameStateManager.prefs.GunColorLeft.mVal);
+            this.gameState.rightColor = ColorUtility.ToHtmlStringRGB(AudicaGameStateManager.prefs.GunColorRight.mVal);
+            this.gameState.targetSpeed = AudicaGameStateManager.prefs.TargetSpeedMultiplier.mVal;
+            this.gameState.meleeSpeed = AudicaGameStateManager.prefs.MeleeSpeedMultiplier.mVal;
+            this.gameState.aimAssist = AudicaGameStateManager.prefs.AimAssistAmount.mVal;
+        }
+
+        private void pollSongState() {
+            if (this.songPlaying) {
+
+                string songClass = "custom";
+                if (this.songData.IsCoreSong()) {
+                    songClass = "ost";
+                }
+                if (this.songData.dlc) {
+                    songClass = "dlc";
+                }
+                if (this.songData.extrasSong) {
+                    songClass = "extras";
+                }
+
+                float currentTicks = AudicaGameStateManager.scoreKeeper.mLastTick;
+                float totalTicks = AudicaGameStateManager.songMaps.GetSongLengthData().mCountInTicks;
+
+                this.songState.songName = this.songData.songID;
+                this.songState.songArtist = this.songData.artist;
+                this.songState.songAuthor = this.songData.author;
+                this.songState.difficulty = KataConfig.GetDifficultyName(AudicaGameStateManager.config.GetDifficulty());
+                this.songState.classification = songClass;
+                this.songState.songLength = TimeSpan.FromMilliseconds(AudicaGameStateManager.songMaps.GetSongLengthData().mCountInMs).ToString();
+                this.songState.timeElapsed = TimeSpan.FromTicks((long)currentTicks).ToString();
+                this.songState.timeRemaining = TimeSpan.FromTicks((long)(totalTicks - currentTicks)).ToString();
+                this.songState.progress = currentTicks / totalTicks;
+                this.songState.currentTick = currentTicks;
+                this.songState.songSpeed = KataConfig.GetCueDartSpeedMultiplier();
+                this.songState.health = AudicaGameStateManager.scoreKeeper.GetHealth();
+                this.songState.score = AudicaGameStateManager.scoreKeeper.mScore;
+                this.songState.scoreMultiplier = AudicaGameStateManager.scoreKeeper.GetRawMultiplier();
+                this.songState.streak = AudicaGameStateManager.scoreKeeper.GetStreak();
+                this.songState.highScore = AudicaGameStateManager.scoreKeeper.GetHighScore();
+                this.songState.isNoFailMode = AudicaGameStateManager.prefs.NoFail.mVal;
+                this.songState.isPracticeMode = AudicaGameStateManager.config.practiceMode;
+                this.songState.isFullComboSoFar = AudicaGameStateManager.scoreKeeper.GetIsFullComboSoFar();
+                this.songState.modifiers = AudicaGameStateManager.modifiers.GetCurrentModifiers()
+                    .Select((GameplayModifiers.Modifier mod) => GameplayModifiers.GetModifierString(mod))
+                    .ToList<string>();
+            }
         }
     }
 }

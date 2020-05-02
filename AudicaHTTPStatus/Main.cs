@@ -30,6 +30,7 @@ namespace AudicaHTTPStatus
 		private Encoder encoder;
 		private HTTPServer httpServer;
 
+        public static Patch selectSong;
 		public static Patch playSong;
 		public static Patch restartSong;
 		public static Patch endSong;
@@ -41,10 +42,14 @@ namespace AudicaHTTPStatus
 
 		public override void OnApplicationStart() {
 			Instance instance = Manager.CreateInstance("TimingAssist");
+
+            // song selection + play state
+            AudicaHTTPStatus.selectSong = instance.Patch(SDK.GetClass("SongSelectItem").GetMethod("OnSelect"), typeof(AudicaHTTPStatus).GetMethod("SelectSong"));
 			AudicaHTTPStatus.playSong = instance.Patch(SDK.GetClass("LaunchPanel").GetMethod("Play"), typeof(AudicaHTTPStatus).GetMethod("PlaySong"));
 			AudicaHTTPStatus.restartSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("Restart"), typeof(AudicaHTTPStatus).GetMethod("RestartSong"));
 			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
 
+            // target event handling
 			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
 			AudicaHTTPStatus.targetMiss = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportShotNothing"), typeof(AudicaHTTPStatus).GetMethod("TargetMiss"));
 			AudicaHTTPStatus.targetMissAim = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetMissAim"));
@@ -52,6 +57,8 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.misfire = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportMisfire"), typeof(AudicaHTTPStatus).GetMethod("Misfire"));
 
 			AudicaHTTPStatus.audicaGameState = new AudicaGameStateManager();
+
+            this.encoder = new Encoder();
 
 			this.httpServer = new HTTPServer(() => {
 				return this.encoder.Status(
@@ -69,6 +76,13 @@ namespace AudicaHTTPStatus
 		public override void OnUpdate() {
 			AudicaHTTPStatus.audicaGameState.Update();
 		}
+
+        public static void SelectSong(IntPtr @this) {
+            AudicaHTTPStatus.selectSong.InvokeOriginal(@this);
+            MelonModLogger.Log("Song Selected!");
+            SongSelectItem button = new SongSelectItem(@this);
+            AudicaHTTPStatus.audicaGameState.songData = button.mSongData;
+        }
 
 		public static void PlaySong(IntPtr @this) {
 			AudicaHTTPStatus.playSong.InvokeOriginal(@this);
