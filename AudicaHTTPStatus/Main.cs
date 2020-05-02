@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
@@ -27,6 +27,7 @@ namespace AudicaHTTPStatus
 	public class AudicaHTTPStatus : MelonMod {
 
 		private static AudicaGameStateManager audicaGameState;
+		private Encoder encoder;
 		private HTTPServer httpServer;
 
 		public static Patch playSong;
@@ -51,7 +52,13 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.misfire = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportMisfire"), typeof(AudicaHTTPStatus).GetMethod("Misfire"));
 
 			AudicaHTTPStatus.audicaGameState = new AudicaGameStateManager();
-			this.httpServer = new HTTPServer();
+
+			this.httpServer = new HTTPServer(() => {
+				return this.encoder.Status(
+					AudicaHTTPStatus.audicaGameState.GameState,
+					AudicaHTTPStatus.audicaGameState.SongState
+				);
+			});
 			this.httpServer.Initialise();
 		}
 

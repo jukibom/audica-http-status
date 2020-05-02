@@ -10,16 +10,20 @@ using MelonLoader;
 
 namespace AudicaHTTPStatus
 {
-	class HTTPServer {
+	class HTTPServer  : WebSocketBehavior {
 		private int port = 6557;
 		private HttpServer server;
+		private Func<string> getStatus;
 
-		public HTTPServer() {
-			// TODO: Inject queryable state object
+		public HTTPServer(Func<string> getStatusJSON) {
+			this.getStatus = getStatusJSON;
 		}
 
 		public void Initialise() {
 			this.server = new HttpServer(this.port);
+			this.server.OnGet += (sender, e) => {
+				this.OnHTTPGet(e);
+			};
 
 			MelonModLogger.Log("Starting HTTP server on port " + this.port.ToString());
 			this.server.Start();
@@ -28,6 +32,24 @@ namespace AudicaHTTPStatus
 		public void Shutdown() {
 			MelonModLogger.Log("Shutting down HTTP server");
 			this.server.Stop();
+		}
+
+		public void OnHTTPGet(HttpRequestEventArgs e) {
+			var req = e.Request;
+			var res = e.Response;
+
+			if (req.RawUrl == "/status.json") {
+				res.StatusCode = 200;
+				res.ContentType = "application/json";
+				res.ContentEncoding = Encoding.UTF8;
+
+				res.WriteContent(Encoding.UTF8.GetBytes(getStatus()));
+
+				return;
+			}
+
+			res.StatusCode = 404;
+			res.WriteContent(new byte[] { });
 		}
 	}
 }
