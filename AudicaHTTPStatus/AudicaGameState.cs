@@ -13,7 +13,7 @@ namespace AudicaHTTPStatus {
 		public string rightColor;       // hex value
 		public float targetSpeed;       // 1 = 100%
 		public float meleeSpeed;        // 1 = 100%
-		public float aimAssist;	        // 1 = 100%
+		public float aimAssist;         // 1 = 100%
 	}
 	
 	struct AudicaSongState {
@@ -25,8 +25,8 @@ namespace AudicaHTTPStatus {
 		public string timeElapsed;      // UTC
 		public string timeRemaining;    // UTC
 		public float progress;          // 0-1, 0 = start, 1 = end
-		public int currentTick;         // Hmx.Audio.MidiPlayCursor.GetCurrentTick
-		public float songSpeed;	        // 1 = 100%
+		public float currentTick;         // Hmx.Audio.MidiPlayCursor.GetCurrentTick
+		public float songSpeed;         // 1 = 100%
 		public float health;
 		public int score;
 		public int scoreMultiplier;
@@ -41,7 +41,7 @@ namespace AudicaHTTPStatus {
 	struct AudicaTargetHitState {
 		public int targetIndex;
 		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
-		public string hand;	        // "left" | "right" | "either" | "none" (e.g. for bombs)
+		public string hand;         // "left" | "right" | "either" | "none" (e.g. for bombs)
 		public float score;
 		public float timingScore;
 		public float aimScore;
@@ -62,15 +62,22 @@ namespace AudicaHTTPStatus {
 		public static ScoreKeeper scoreKeeper;
 		public static TargetTracker targetTracker;
 		public static GameplayStats gameplayStats;
+        public static PlayerPreferences prefs;
 
 		// State containers
 		private AudicaGameState gameState;
 		private AudicaSongState songState;
 
-		public AudicaGameStateManager() {
+        private bool songPlaying = false;
+
+        public AudicaGameStateManager() {
 			AudicaGameStateManager.scoreKeeper = UnityEngine.Object.FindObjectOfType<ScoreKeeper>();
 			AudicaGameStateManager.targetTracker = UnityEngine.Object.FindObjectOfType<TargetTracker>();
 			AudicaGameStateManager.gameplayStats = UnityEngine.Object.FindObjectOfType<GameplayStats>();
+            AudicaGameStateManager.prefs = UnityEngine.Object.FindObjectOfType<PlayerPreferences>();
+
+            this.clearGameState();
+            this.clearSongState();
 		}
 
 		public AudicaGameState GameState {
@@ -85,14 +92,23 @@ namespace AudicaHTTPStatus {
 			}
 		}
 
-		// Called every update tick, is this needed?
+        // Called every tick, don't do anything too heavy in here!
 		public void Update() {
+            this.songState.currentTick = this.songPlaying ? AudicaGameStateManager.scoreKeeper.mLastTick : 0;
 
+            // prefs (here's hoping color utility isn't dog slow!)
+            this.gameState.leftColor = ColorUtility.ToHtmlStringRGB(AudicaGameStateManager.prefs.GunColorLeft.mVal);
+            this.gameState.rightColor = ColorUtility.ToHtmlStringRGB(AudicaGameStateManager.prefs.GunColorRight.mVal);
+            this.gameState.targetSpeed = AudicaGameStateManager.prefs.TargetSpeedMultiplier.mVal;
+            this.gameState.meleeSpeed = AudicaGameStateManager.prefs.MeleeSpeedMultiplier.mVal;
+            this.gameState.aimAssist = AudicaGameStateManager.prefs.AimAssistAmount.mVal;
 		}
 
 		public void SongStart() {
 			MelonModLogger.Log("Song started");
-		}
+            this.songPlaying = true;
+
+        }
 
 		public void SongRestart() {
 			MelonModLogger.Log("Song restarted");
@@ -100,7 +116,8 @@ namespace AudicaHTTPStatus {
 
 		public void SongEnd() {
 			MelonModLogger.Log("Song ended");
-		}
+            this.songPlaying = false;
+        }
 
 		public AudicaTargetHitState TargetHit(Vector2 targetHitPos) {
 			AudicaTargetHitState targetHit = new AudicaTargetHitState();
@@ -182,6 +199,10 @@ namespace AudicaHTTPStatus {
 
 		private void clearGameState() {
 			this.gameState = new AudicaGameState();
-		}
-	}
+        }
+
+        private void clearSongState() {
+            this.songState = new AudicaSongState();
+        }
+    }
 }

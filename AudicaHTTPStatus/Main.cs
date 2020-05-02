@@ -84,8 +84,7 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.endSong.InvokeOriginal(@this);
 			AudicaHTTPStatus.audicaGameState.SongEnd();
 		}
-
-
+        
 		/** TARGET EVENT HANDLING **/
 		public unsafe static void TargetHit(IntPtr @this, IntPtr cue, float tick, Vector2 targetHitPos) {
 			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[] {
