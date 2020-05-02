@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
@@ -33,8 +33,10 @@ namespace AudicaHTTPStatus
 		public static Patch restartSong;
 		public static Patch endSong;
 		public static Patch targetHit;
+		public static Patch targetMiss;
 		public static Patch targetMissAim;
 		public static Patch targetMissEarlyLate;
+		public static Patch misfire;
 
 		public override void OnApplicationStart() {
 			Instance instance = Manager.CreateInstance("TimingAssist");
@@ -43,8 +45,10 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
 
 			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
+			AudicaHTTPStatus.targetMiss = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportShotNothing"), typeof(AudicaHTTPStatus).GetMethod("TargetMiss"));
 			AudicaHTTPStatus.targetMissAim = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetMissAim"));
 			AudicaHTTPStatus.targetMissEarlyLate = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetEarlyLate"), typeof(AudicaHTTPStatus).GetMethod("TargetMissEarlyLate"));
+			AudicaHTTPStatus.misfire = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportMisfire"), typeof(AudicaHTTPStatus).GetMethod("Misfire"));
 
 			AudicaHTTPStatus.audicaGameState = new AudicaGameStateManager();
 			this.httpServer = new HTTPServer();
@@ -74,31 +78,47 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.audicaGameState.SongEnd();
 		}
 
-		public unsafe static void TargetHit(IntPtr @this, IntPtr cue, float tick, Vector2 targetHitPos) {
-			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
-				{
-					cue,
-					new IntPtr((void*)(&tick)),
-					new IntPtr((void*)(&targetHitPos))
-				});
 
-			AudicaHTTPStatus.audicaGameState.TargetHit(targetHitPos);
+		/** TARGET EVENT HANDLING **/
+		public unsafe static void TargetHit(IntPtr @this, IntPtr cue, float tick, Vector2 targetHitPos) {
+			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[] {
+				cue,
+				new IntPtr((void*)(&tick)),
+				new IntPtr((void*)(&targetHitPos))
+			});
+
+			AudicaTargetHitState targetHit = AudicaHTTPStatus.audicaGameState.TargetHit(targetHitPos);
+			// TODO: feed output into JSON parser then to HTTP server as event
+		}
+
+		public unsafe static void TargetMiss(IntPtr @this) {
+			AudicaHTTPStatus.targetMiss.InvokeOriginal(@this);
+
+			AudicaTargetFailState targetMiss = AudicaHTTPStatus.audicaGameState.TargetMiss();
 		}
 
 		public unsafe static void TargetMissAim(IntPtr @this, IntPtr cue, Vector2 targetMissPos) {
-			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
-				{
-					cue,
-					new IntPtr((void*)(&targetMissPos))
-				});
+			AudicaHTTPStatus.targetMissAim.InvokeOriginal(@this, new IntPtr[] {
+				cue,
+				new IntPtr((void*)(&targetMissPos))
+			});
+
+			AudicaTargetFailState targetMiss = AudicaHTTPStatus.audicaGameState.TargetMissAim();
 		}
 
 		public unsafe static void TargetMissEarlyLate(IntPtr @this, IntPtr cue, float tick) {
-			AudicaHTTPStatus.targetHit.InvokeOriginal(@this, new IntPtr[]
-				{
-					cue,
-					new IntPtr((void*)(&tick)),
-				});
+			AudicaHTTPStatus.targetMissEarlyLate.InvokeOriginal(@this, new IntPtr[] {
+				cue,
+				new IntPtr((void*)(&tick)),
+			});
+
+			AudicaTargetFailState targetMiss = AudicaHTTPStatus.audicaGameState.TargetMissEarlyLate(tick);
+		}
+
+		public unsafe static void Misfire(IntPtr @this) {
+			AudicaHTTPStatus.misfire.InvokeOriginal(@this);
+
+			// TODO (event with hand that misfired?)
 		}
 	}
 }

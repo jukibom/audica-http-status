@@ -25,6 +25,7 @@ namespace AudicaHTTPStatus {
 		public string timeElapsed;		// UTC
 		public string timeRemaining;	// UTC
 		public float progress;          // 0-1, 0 = start, 1 = end
+		public int currentTick;         // Hmx.Audio.MidiPlayCursor.GetCurrentTick
 		public float songSpeed;			// 1 = 100%
 		public float health;
 		public int score;
@@ -38,9 +39,10 @@ namespace AudicaHTTPStatus {
 	}
 
 	struct AudicaTargetHitState {
-		public int targetNumber;
+		public int targetIndex;
 		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
 		public string hand;			// "left" | "right" | "either" | "none" (e.g. for bombs)
+		public float score;
 		public float timingScore;
 		public float aimScore;
 		public float tick;
@@ -48,10 +50,10 @@ namespace AudicaHTTPStatus {
 	}
 
 	struct AudicaTargetFailState {
-		public int targetNumber;
+		public int targetIndex;
 		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
 		public string hand;         // "left" | "right" | "either" | "none" (e.g. for bombs)
-		public string reason;		// "no-fire" | "miss" | "early" | "late"
+		public string reason;		// "miss" | "aim" | "early" | "late"
 	}
 
 	class AudicaGameStateManager {
@@ -104,33 +106,47 @@ namespace AudicaHTTPStatus {
 			AudicaTargetHitState targetHit = new AudicaTargetHitState();
 			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
 
-			targetHit.targetNumber = cue.index;
+			targetHit.targetIndex = cue.index;
 			targetHit.type = this.cueToTargetType(cue);
 			targetHit.hand = this.cueToHand(cue);
 			targetHit.timingScore = AudicaGameStateManager.gameplayStats.GetLastTimingScore();
 			targetHit.aimScore = AudicaGameStateManager.gameplayStats.GetLastAimScore();
+			targetHit.score = targetHit.timingScore + targetHit.aimScore;		// TODO: may need to multiply by combo? Need to test
 			targetHit.tick = cue.tick;
 			targetHit.targetHitPosition = targetHitPos;
 
 			return targetHit;
 		}
 
-		public  AudicaTargetFailState TargetMissAim() {
+
+
+		public AudicaTargetFailState TargetMiss() {
 			AudicaTargetFailState targetMiss = new AudicaTargetFailState();
 			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
 
-			targetMiss.targetNumber = cue.index;
+			targetMiss.targetIndex = cue.index;
 			targetMiss.type = this.cueToTargetType(cue);
 			targetMiss.hand = this.cueToHand(cue);
 			targetMiss.reason = "miss";
 			return targetMiss;
 		}
 
-		public AudicaTargetFailState TargetMissEarlyLate(int tick) {
+		public AudicaTargetFailState TargetMissAim() {
 			AudicaTargetFailState targetMiss = new AudicaTargetFailState();
 			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
 
-			targetMiss.targetNumber = cue.index;
+			targetMiss.targetIndex = cue.index;
+			targetMiss.type = this.cueToTargetType(cue);
+			targetMiss.hand = this.cueToHand(cue);
+			targetMiss.reason = "aim";
+			return targetMiss;
+		}
+
+		public AudicaTargetFailState TargetMissEarlyLate(float tick) {
+			AudicaTargetFailState targetMiss = new AudicaTargetFailState();
+			SongCues.Cue cue = AudicaGameStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
+
+			targetMiss.targetIndex = cue.index;
 			targetMiss.type = this.cueToTargetType(cue);
 			targetMiss.hand = this.cueToHand(cue);
 			targetMiss.reason = tick < cue.tick ? "early" : "late";
