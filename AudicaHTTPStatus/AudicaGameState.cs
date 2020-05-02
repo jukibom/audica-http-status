@@ -13,20 +13,20 @@ namespace AudicaHTTPStatus {
 		public string rightColor;       // hex value
 		public float targetSpeed;       // 1 = 100%
 		public float meleeSpeed;        // 1 = 100%
-		public float aimAssist;			// 1 = 100%
+		public float aimAssist;	        // 1 = 100%
 	}
 	
 	struct AudicaSongState {
 		public string songName;
 		public string songMapper;
-		public string difficulty;		// "beginner" | "standard" | "advanced" | "expert"
-		public string classification;	// "ost" | "dlc" | "custom"
-		public string songLength;		// UTC
-		public string timeElapsed;		// UTC
-		public string timeRemaining;	// UTC
+		public string difficulty;       // "beginner" | "standard" | "advanced" | "expert"
+		public string classification;   // "ost" | "dlc" | "custom"
+		public string songLength;       // UTC
+		public string timeElapsed;      // UTC
+		public string timeRemaining;    // UTC
 		public float progress;          // 0-1, 0 = start, 1 = end
 		public int currentTick;         // Hmx.Audio.MidiPlayCursor.GetCurrentTick
-		public float songSpeed;			// 1 = 100%
+		public float songSpeed;	        // 1 = 100%
 		public float health;
 		public int score;
 		public int scoreMultiplier;
@@ -41,7 +41,7 @@ namespace AudicaHTTPStatus {
 	struct AudicaTargetHitState {
 		public int targetIndex;
 		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
-		public string hand;			// "left" | "right" | "either" | "none" (e.g. for bombs)
+		public string hand;	        // "left" | "right" | "either" | "none" (e.g. for bombs)
 		public float score;
 		public float timingScore;
 		public float aimScore;
@@ -53,7 +53,7 @@ namespace AudicaHTTPStatus {
 		public int targetIndex;
 		public string type;         // "melee" | "standard" | "sustain" | "vertical" | "horizontal" | "chain-start" | "chain" | "bomb"
 		public string hand;         // "left" | "right" | "either" | "none" (e.g. for bombs)
-		public string reason;		// "miss" | "aim" | "early" | "late"
+		public string reason;       // "miss" | "aim" | "early" | "late"
 	}
 
 	class AudicaGameStateManager {
