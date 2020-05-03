@@ -45,7 +45,7 @@ namespace AudicaHTTPStatus
 
             // song selection + play state
             AudicaHTTPStatus.selectSong = instance.Patch(SDK.GetClass("SongSelectItem").GetMethod("OnSelect"), typeof(AudicaHTTPStatus).GetMethod("SelectSong"));
-			AudicaHTTPStatus.playSong = instance.Patch(SDK.GetClass("LaunchPanel").GetMethod("Play"), typeof(AudicaHTTPStatus).GetMethod("PlaySong"));
+			AudicaHTTPStatus.playSong = instance.Patch(SDK.GetClass("ScoreKeeper").GetMethod("Start"), typeof(AudicaHTTPStatus).GetMethod("StartSong"));
 			AudicaHTTPStatus.restartSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("Restart"), typeof(AudicaHTTPStatus).GetMethod("RestartSong"));
 			AudicaHTTPStatus.endSong = instance.Patch(SDK.GetClass("InGameUI").GetMethod("ReturnToSongList"), typeof(AudicaHTTPStatus).GetMethod("EndSong"));
 
@@ -84,7 +84,7 @@ namespace AudicaHTTPStatus
             AudicaHTTPStatus.audicaGameState.songData = button.mSongData;
         }
 
-		public static void PlaySong(IntPtr @this) {
+		public static void StartSong(IntPtr @this) {
 			AudicaHTTPStatus.playSong.InvokeOriginal(@this);
 			AudicaHTTPStatus.audicaGameState.SongStart();
 		}

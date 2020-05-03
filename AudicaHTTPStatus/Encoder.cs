@@ -22,9 +22,10 @@ namespace AudicaHTTPStatus {
 			gameStateJSON["rightColor"] = gameState.rightColor;
 			gameStateJSON["targetSpeed"] = gameState.targetSpeed;
 			gameStateJSON["meleeSpeed"] = gameState.meleeSpeed;
-			gameStateJSON["aimAssist"] = gameState.leftColor;
-			// TODO: timing assist value?
+			gameStateJSON["aimAssist"] = gameState.aimAssist;
+            // TODO: timing assist value?
 
+            songStateJSON["songId"] = songState.songId;
 			songStateJSON["songName"] = songState.songName;
 			songStateJSON["songArtist"] = songState.songArtist;
 			songStateJSON["songAuthor"] = songState.songAuthor;
