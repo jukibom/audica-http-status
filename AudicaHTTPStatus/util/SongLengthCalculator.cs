@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AudicaHTTPStatus {
+namespace AudicaUtils {
 
     /**
      * Calculates arbitrary time periods within a song. THIS CLASS SHOULD BE RECONSTRUCTED ON SONG START!
