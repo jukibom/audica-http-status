@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -74,6 +74,9 @@ namespace AudicaHTTPStatus {
 		private AudicaGameState gameState;
         private AudicaSongState songState;
 
+        // Util
+        private SongLengthCalculator songCalculator;
+
         private bool songPlaying = false;
         public SongList.SongData songData { get; set; } 
 
@@ -101,10 +104,12 @@ namespace AudicaHTTPStatus {
             this.pollSongState();
 		}
 
-		public void SongStart() {
+		public void SongStart(SongList.SongData song) {
 			MelonModLogger.Log("Song started");
 
             this.initialiseStateManagers();
+            this.songData = song;
+            this.songCalculator = new SongLengthCalculator(song);
             this.songPlaying = true;
         }
 
@@ -270,12 +275,20 @@ namespace AudicaHTTPStatus {
                     songClass = "extras";
                 }
 
+
+                // We don't want to calculate the ticks to the end of the song, it keeps playing!
+                // Instead get the last target (plus its length) as the end ticks
+                UnhollowerBaseLib.Il2CppReferenceArray<SongCues.Cue> cues = AudicaGameStateManager.songCues.mCues.cues;
+                SongCues.Cue endCue = cues[cues.Length - 1];
+                float songEndTicks = endCue.tick + endCue.tickLength;
+
                 float currentTicks = AudicaGameStateManager.scoreKeeper.mLastTick;
-                float totalTicks = AudicaGameStateManager.songCues.mAudioLengthTicks;
+                float totalTicks = songEndTicks;
 
                 // TODO: lol not this
-                long currentTimeMs = Convert.ToInt64(currentTicks);
-                long totalTimeMs = Convert.ToInt64(totalTicks);
+                long totalTimeMs = Convert.ToInt64(this.songCalculator.GetSongPeriodMilliseconds(0, totalTicks));
+                long currentTimeMs = Convert.ToInt64(this.songCalculator.GetSongPeriodMilliseconds(0, currentTicks));
+                long remainingTimeMs = Convert.ToInt64(this.songCalculator.GetSongPeriodMilliseconds(currentTicks, totalTicks));
 
                 this.songState.songId = this.songData.songID;
                 this.songState.songName = this.songData.title;

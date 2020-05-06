@@ -27,6 +27,7 @@ namespace AudicaHTTPStatus
 	public class AudicaHTTPStatus : MelonMod {
 
 		private static AudicaGameStateManager audicaGameState;
+        private static SongList.SongData selectedSongData;
 		private Encoder encoder;
 		private HTTPServer httpServer;
 
@@ -79,14 +80,13 @@ namespace AudicaHTTPStatus
 
         public static void SelectSong(IntPtr @this) {
             AudicaHTTPStatus.selectSong.InvokeOriginal(@this);
-            MelonModLogger.Log("Song Selected!");
             SongSelectItem button = new SongSelectItem(@this);
-            AudicaHTTPStatus.audicaGameState.songData = button.mSongData;
+            AudicaHTTPStatus.selectedSongData = button.mSongData;
         }
 
 		public static void StartSong(IntPtr @this) {
 			AudicaHTTPStatus.playSong.InvokeOriginal(@this);
-			AudicaHTTPStatus.audicaGameState.SongStart();
+			AudicaHTTPStatus.audicaGameState.SongStart(AudicaHTTPStatus.selectedSongData);
 		}
 
 		public static void RestartSong(IntPtr @this) {
@@ -108,7 +108,7 @@ namespace AudicaHTTPStatus
 			});
 
 			AudicaTargetHitState targetHit = AudicaHTTPStatus.audicaGameState.TargetHit(targetHitPos);
-			// TODO: feed output into JSON parser then to HTTP server as event
+			// TODO: feed output into JSON parser then to HTTP server as websocket event
 		}
 
 		public unsafe static void TargetMiss(IntPtr @this) {
