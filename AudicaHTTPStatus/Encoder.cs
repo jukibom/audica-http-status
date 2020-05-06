@@ -36,6 +36,7 @@ namespace AudicaHTTPStatus {
 			songStateJSON["timeRemaining"] = songState.timeRemaining;
 			songStateJSON["progress"] = songState.progress;
 			songStateJSON["currentTick"] = songState.currentTick;
+			songStateJSON["totalTicks"] = songState.ticksTotal;
 			songStateJSON["songSpeed"] = songState.songSpeed;
 			songStateJSON["health"] = songState.health;
 			songStateJSON["score"] = songState.score;

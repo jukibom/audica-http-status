@@ -28,6 +28,7 @@ namespace AudicaHTTPStatus {
 		public string timeRemaining;    // UTC
 		public float progress;          // 0-1, 0 = start, 1 = end
 		public float currentTick;       // Hmx.Audio.MidiPlayCursor.GetCurrentTick
+        public float ticksTotal;
 		public float songSpeed;         // 1 = 100%
 		public float health;
 		public int score;
@@ -228,6 +229,7 @@ namespace AudicaHTTPStatus {
             this.songState.timeRemaining = TimeSpan.FromSeconds(0).ToString();
             this.songState.progress = 0;
             this.songState.currentTick = 0;
+            this.songState.ticksTotal = 0;
             this.songState.songSpeed = 1;
             this.songState.health = 1;
             this.songState.score = 0;
@@ -287,6 +289,7 @@ namespace AudicaHTTPStatus {
                 this.songState.timeRemaining = TimeSpan.FromMilliseconds((totalTimeMs - currentTimeMs)).ToString();
                 this.songState.progress = currentTicks / totalTicks;
                 this.songState.currentTick = currentTicks;
+                this.songState.ticksTotal = totalTicks;
                 this.songState.songSpeed = KataConfig.GetCueDartSpeedMultiplier();      // TODO: not a clue what this value actually is but it's not the speed multiplier!
                 this.songState.health = AudicaGameStateManager.scoreKeeper.GetHealth();
                 this.songState.score = AudicaGameStateManager.scoreKeeper.mScore;
