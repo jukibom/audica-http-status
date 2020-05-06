@@ -65,5 +65,4 @@ namespace AudicaHTTPStatus {
             return 60000 / (tempo * 480);
         }
     }
-
 }
