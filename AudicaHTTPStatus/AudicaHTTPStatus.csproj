@@ -26,10 +26,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="AudicaGameState.cs" />
+    <Compile Include="AudicaGameStateManager.cs" />
+    <Compile Include="AudicaTargetStateManager.cs" />
     <Compile Include="Encoder.cs" />
     <Compile Include="HTTPServer.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="types\State.cs" />
     <Compile Include="util\SongLengthCalculator.cs" />
     <Compile Include="util\SimpleJSON.cs" />
   </ItemGroup>

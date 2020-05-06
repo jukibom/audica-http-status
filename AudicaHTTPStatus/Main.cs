@@ -27,6 +27,7 @@ namespace AudicaHTTPStatus
 	public class AudicaHTTPStatus : MelonMod {
 
 		private static AudicaGameStateManager audicaGameState;
+		private static AudicaTargetStateManager targetState;
         private static SongList.SongData selectedSongData;
 		private Encoder encoder;
 		private HTTPServer httpServer;
@@ -58,6 +59,8 @@ namespace AudicaHTTPStatus
 			AudicaHTTPStatus.misfire = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportMisfire"), typeof(AudicaHTTPStatus).GetMethod("Misfire"));
 
 			AudicaHTTPStatus.audicaGameState = new AudicaGameStateManager();
+			AudicaHTTPStatus.targetState = new AudicaTargetStateManager();
+
 
             this.encoder = new Encoder();
 
@@ -107,14 +110,14 @@ namespace AudicaHTTPStatus
 				new IntPtr((void*)(&targetHitPos))
 			});
 
-			AudicaTargetHitState targetHit = AudicaHTTPStatus.audicaGameState.TargetHit(targetHitPos);
+			AudicaTargetHitState targetHit = AudicaHTTPStatus.targetState.TargetHit(targetHitPos);
 			// TODO: feed output into JSON parser then to HTTP server as websocket event
 		}
 
 		public unsafe static void TargetMiss(IntPtr @this) {
 			AudicaHTTPStatus.targetMiss.InvokeOriginal(@this);
 
-			AudicaTargetFailState targetMiss = AudicaHTTPStatus.audicaGameState.TargetMiss();
+			AudicaTargetFailState targetMiss = AudicaHTTPStatus.targetState.TargetMiss();
 		}
 
 		public unsafe static void TargetMissAim(IntPtr @this, IntPtr cue, Vector2 targetMissPos) {
@@ -123,7 +126,7 @@ namespace AudicaHTTPStatus
 				new IntPtr((void*)(&targetMissPos))
 			});
 
-			AudicaTargetFailState targetMiss = AudicaHTTPStatus.audicaGameState.TargetMissAim();
+			AudicaTargetFailState targetMiss = AudicaHTTPStatus.targetState.TargetMissAim();
 		}
 
 		public unsafe static void TargetMissEarlyLate(IntPtr @this, IntPtr cue, float tick) {
@@ -132,7 +135,7 @@ namespace AudicaHTTPStatus
 				new IntPtr((void*)(&tick)),
 			});
 
-			AudicaTargetFailState targetMiss = AudicaHTTPStatus.audicaGameState.TargetMissEarlyLate(tick);
+			AudicaTargetFailState targetMiss = AudicaHTTPStatus.targetState.TargetMissEarlyLate(tick);
 		}
 
 		public unsafe static void Misfire(IntPtr @this) {

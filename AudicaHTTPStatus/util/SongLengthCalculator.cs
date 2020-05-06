@@ -6,26 +6,34 @@ using System.Threading.Tasks;
 
 namespace AudicaHTTPStatus {
 
+    /**
+     * Calculates arbitrary time periods within a song.
+     */
     class SongLengthCalculator {
-        private SongList.SongData song;
 
-        public SongLengthCalculator(SongList.SongData songData) {
-            this.song = songData;
+        public static SongDataHolder songDataHolder;
+        public static SongCues songCues;
+
+        public SongLengthCalculator() {
+            SongLengthCalculator.songDataHolder = UnityEngine.Object.FindObjectOfType<SongDataHolder>();
+            SongLengthCalculator.songCues = UnityEngine.Object.FindObjectOfType<SongCues>();
         }
 
         public float GetSongPeriodMilliseconds(float startTick, float endTick) {
-
+            SongList.SongData song = SongDataHolder.I.songData;
             float lengthMilliseconds = 0;
 
-            // we want the total ticks for the chunks from each tempo change to the next.
-            for (int i = 0; i < this.song.tempos.Length; i ++) {
+            if (song == null) return lengthMilliseconds;
 
-                float startChunkTick = this.song.tempos[i].tick;
+            // we want the total ticks for the chunks from each tempo change to the next.
+            for (int i = 0; i < song.tempos.Length; i ++) {
+
+                float startChunkTick = song.tempos[i].tick;
                 float endChunkTick = endTick;
 
                 // if it's NOT the last tempo change, grab the tick from the next one instead.
-                if (i != this.song.tempos.Length - 1) {
-                    endChunkTick = this.song.tempos[i + 1].tick;
+                if (i != song.tempos.Length - 1) {
+                    endChunkTick = song.tempos[i + 1].tick;
                 }
 
                 // cull obvious outliers (chunks entirely outside our range)
@@ -40,7 +48,7 @@ namespace AudicaHTTPStatus {
                 float chunkTickLength = endChunkTick - startChunkTick;
 
                 // accumulator
-                float chunkMilliseconds = GetTicksMillisconds(chunkTickLength, this.song.tempos[i].tempo);
+                float chunkMilliseconds = GetTicksMillisconds(chunkTickLength, song.tempos[i].tempo);
                 lengthMilliseconds += chunkMilliseconds;
             }
 
