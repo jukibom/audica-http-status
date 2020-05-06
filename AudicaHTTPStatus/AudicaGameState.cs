@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -94,16 +94,6 @@ namespace AudicaHTTPStatus {
 			}
 		}
 
-        private void initialiseStateManagers() {
-            AudicaGameStateManager.scoreKeeper = UnityEngine.Object.FindObjectOfType<ScoreKeeper>();
-            AudicaGameStateManager.targetTracker = UnityEngine.Object.FindObjectOfType<TargetTracker>();
-            AudicaGameStateManager.gameplayStats = UnityEngine.Object.FindObjectOfType<GameplayStats>();
-            AudicaGameStateManager.modifiers = UnityEngine.Object.FindObjectOfType<GameplayModifiers>();
-            AudicaGameStateManager.prefs = UnityEngine.Object.FindObjectOfType<PlayerPreferences>();
-            AudicaGameStateManager.config = UnityEngine.Object.FindObjectOfType<KataConfig>();
-            AudicaGameStateManager.songCues = UnityEngine.Object.FindObjectOfType<SongCues>();
-        }
-
         // Called every tick, don't do anything too heavy in here!
 		public void Update() {
             this.pollGameState();
@@ -179,7 +169,17 @@ namespace AudicaHTTPStatus {
 			return targetMiss;
 		}
 
-		private string cueToTargetType(SongCues.Cue cue) {
+        private void initialiseStateManagers() {
+            AudicaGameStateManager.scoreKeeper = UnityEngine.Object.FindObjectOfType<ScoreKeeper>();
+            AudicaGameStateManager.targetTracker = UnityEngine.Object.FindObjectOfType<TargetTracker>();
+            AudicaGameStateManager.gameplayStats = UnityEngine.Object.FindObjectOfType<GameplayStats>();
+            AudicaGameStateManager.modifiers = UnityEngine.Object.FindObjectOfType<GameplayModifiers>();
+            AudicaGameStateManager.prefs = UnityEngine.Object.FindObjectOfType<PlayerPreferences>();
+            AudicaGameStateManager.config = UnityEngine.Object.FindObjectOfType<KataConfig>();
+            AudicaGameStateManager.songCues = UnityEngine.Object.FindObjectOfType<SongCues>();
+        }
+
+        private string cueToTargetType(SongCues.Cue cue) {
 			string type = "";
 			switch (cue.behavior) {
 				case Target.TargetBehavior.Melee: type = "melee"; break;
