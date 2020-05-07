@@ -43,7 +43,7 @@ namespace AudicaHTTPStatus
 		public static Patch misfire;
 
 		public override void OnApplicationStart() {
-			Instance instance = Manager.CreateInstance("TimingAssist");
+			Instance instance = Manager.CreateInstance("AudicaHTTPStatus");
 
             // song selection + play state
             AudicaHTTPStatus.selectSong = instance.Patch(SDK.GetClass("SongSelectItem").GetMethod("OnSelect"), typeof(AudicaHTTPStatus).GetMethod("SelectSong"));
