@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +16,6 @@ namespace AudicaHTTPStatus {
         public static PlayerPreferences prefs;
         public static KataConfig config;
         public static SongCues songCues;
-        public static AudioDriver audio;
 
 		// State containers
 		private AudicaGameState gameState;
@@ -76,7 +75,6 @@ namespace AudicaHTTPStatus {
             AudicaGameStateManager.prefs = UnityEngine.Object.FindObjectOfType<PlayerPreferences>();
             AudicaGameStateManager.config = UnityEngine.Object.FindObjectOfType<KataConfig>();
             AudicaGameStateManager.songCues = UnityEngine.Object.FindObjectOfType<SongCues>();
-            AudicaGameStateManager.audio = UnityEngine.Object.FindObjectOfType<AudioDriver>();
         }
 
 		private void clearGameState() {
