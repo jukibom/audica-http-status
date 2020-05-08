@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
@@ -54,7 +54,7 @@ namespace AudicaHTTPStatus
             // target event handling
 			AudicaHTTPStatus.targetHit = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetHit"));
 			AudicaHTTPStatus.targetMiss = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportShotNothing"), typeof(AudicaHTTPStatus).GetMethod("TargetMiss"));
-			AudicaHTTPStatus.targetMissAim = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetHit"), typeof(AudicaHTTPStatus).GetMethod("TargetMissAim"));
+			AudicaHTTPStatus.targetMissAim = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetAimMiss"), typeof(AudicaHTTPStatus).GetMethod("TargetMissAim"));
 			AudicaHTTPStatus.targetMissEarlyLate = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportTargetEarlyLate"), typeof(AudicaHTTPStatus).GetMethod("TargetMissEarlyLate"));
 			AudicaHTTPStatus.misfire = instance.Patch(SDK.GetClass("GameplayStats").GetMethod("ReportMisfire"), typeof(AudicaHTTPStatus).GetMethod("Misfire"));
 
