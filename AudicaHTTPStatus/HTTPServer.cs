@@ -43,13 +43,15 @@ namespace AudicaHTTPStatus
 				res.ContentType = "application/json";
 				res.ContentEncoding = Encoding.UTF8;
 
-				res.WriteContent(Encoding.UTF8.GetBytes(getStatus()));
+#pragma warning disable 618
+                res.WriteContent(Encoding.UTF8.GetBytes(getStatus()));
 
 				return;
 			}
 
 			res.StatusCode = 404;
-			res.WriteContent(new byte[] { });
+#pragma warning disable 618
+            res.WriteContent(new byte[] { });
 		}
 	}
 }
