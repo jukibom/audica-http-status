@@ -9,11 +9,9 @@ using UnityEngine;
 namespace AudicaHTTPStatus {
     class AudicaTargetStateManager {
         public static TargetTracker targetTracker;
-        		public static GameplayStats gameplayStats;
+        public static GameplayStats gameplayStats;
 
-        public AudicaTargetStateManager() {
-
-        }
+        public AudicaTargetStateManager() { }
 
         // Must be called when a song starts in order to fetch correct targets 
         public void SongStart() {
