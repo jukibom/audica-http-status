@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AudicaHTTPStatus.util;
 using UnityEngine;
-using AudicaUtils;
 
 namespace AudicaHTTPStatus {
 
@@ -12,7 +12,7 @@ namespace AudicaHTTPStatus {
 
 		// Audica game classes
 		public static ScoreKeeper scoreKeeper;
-		public static GameplayModifiers modifiers;
+        public static GameplayModifiers modifiers;
         public static PlayerPreferences prefs;
         public static KataConfig config;
         public static SongCues songCues;
@@ -52,10 +52,9 @@ namespace AudicaHTTPStatus {
 		}
 
 		public void SongStart(SongList.SongData song) {
-
             this.initialiseStateManagers();
-            this.songData = song;
             this.songCalculator = new SongLengthCalculator();
+            this.songData = song;
             this.songPlaying = true;
         }
 
@@ -123,7 +122,6 @@ namespace AudicaHTTPStatus {
 
         private void pollSongState() {
             if (this.songPlaying) {
-
                 string songClass = "custom";
                 if (this.songData.IsCoreSong()) {
                     songClass = "ost";
@@ -135,36 +133,30 @@ namespace AudicaHTTPStatus {
                     songClass = "extras";
                 }
 
-
                 // We don't want to calculate the ticks to the end of the song, it keeps playing!
                 // Instead get the last target (plus its length) as the end ticks
                 UnhollowerBaseLib.Il2CppReferenceArray<SongCues.Cue> cues = AudicaGameStateManager.songCues.mCues.cues;
                 SongCues.Cue endCue = cues[cues.Length - 1];
                 float songEndTicks = endCue.tick + endCue.tickLength;
 
-                float currentTicks = AudicaGameStateManager.scoreKeeper.mLastTick;
-                float totalTicks = songEndTicks;
+                float currentTick = AudicaGameStateManager.scoreKeeper.mLastTick;
 
-                long totalTimeMs = Convert.ToInt64(this.songCalculator.GetSongPeriodMilliseconds(0, totalTicks));
-                long currentTimeMs = Convert.ToInt64(this.songCalculator.GetSongPeriodMilliseconds(0, currentTicks));
-                long remainingTimeMs = Convert.ToInt64(this.songCalculator.GetSongPeriodMilliseconds(currentTicks, totalTicks));
-
-                MelonLoader.MelonModLogger.Log("total time ms " + totalTimeMs.ToString());
-                //MelonLoader.MelonModLogger.Log()
-
+                float totalTimeMs = this.songCalculator.SongLengthMilliseconds;
+                float currentTimeMs = this.songCalculator.GetSongPositionMilliseconds(currentTick);
+                float remainingTimeMs = totalTimeMs - currentTimeMs;
+                
                 this.songState.songId = this.songData.songID;
                 this.songState.songName = this.songData.title;
                 this.songState.songArtist = this.songData.artist;
                 this.songState.songAuthor = this.songData.author;
-                //this.songState.songBpm = this.songData.tempos;        // uhh oh this is an array of all bpm changes. eep
                 this.songState.difficulty = KataConfig.GetDifficultyName(AudicaGameStateManager.config.GetDifficulty());
                 this.songState.classification = songClass;
-                this.songState.songLength = TimeSpan.FromMilliseconds(totalTimeMs).ToString();
-                this.songState.timeElapsed = TimeSpan.FromMilliseconds(currentTimeMs).ToString();
-                this.songState.timeRemaining = TimeSpan.FromMilliseconds((totalTimeMs - currentTimeMs)).ToString();
-                this.songState.progress = currentTicks / totalTicks;
-                this.songState.currentTick = currentTicks;
-                this.songState.ticksTotal = totalTicks;
+                this.songState.songLength = TimeSpan.FromMilliseconds(Convert.ToInt64(totalTimeMs)).ToString();
+                this.songState.timeElapsed = TimeSpan.FromMilliseconds(Convert.ToInt64(currentTimeMs)).ToString();
+                this.songState.timeRemaining = TimeSpan.FromMilliseconds(Convert.ToInt64(remainingTimeMs)).ToString();
+                this.songState.progress = currentTimeMs / totalTimeMs;
+                this.songState.currentTick = currentTick;
+                this.songState.ticksTotal = songEndTicks;
                 this.songState.songSpeed = KataConfig.GetCueDartSpeedMultiplier();      // TODO: not a clue what this value actually is but it's not the speed multiplier!
                 this.songState.health = AudicaGameStateManager.scoreKeeper.GetHealth();
                 this.songState.score = AudicaGameStateManager.scoreKeeper.mScore;
