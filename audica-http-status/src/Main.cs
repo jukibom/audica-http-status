@@ -27,7 +27,7 @@ namespace AudicaHTTPStatus
 	public class AudicaHTTPStatus : MelonMod {
 
         internal static AudicaGameStateManager AudicaGameState { get; set; }
-        internal static AudicaTargetStateManager TargetState { get; set; }
+        internal static AudicaTargetStateManager AudicaTargetState { get; set; }
 
         public static SongList.SongData selectedSongData;
 		private Encoder encoder;
@@ -38,7 +38,7 @@ namespace AudicaHTTPStatus
             Hooks.ApplyHooks(instance);
 
 			AudicaHTTPStatus.AudicaGameState = new AudicaGameStateManager();
-			AudicaHTTPStatus.TargetState = new AudicaTargetStateManager();
+			AudicaHTTPStatus.AudicaTargetState = new AudicaTargetStateManager();
 
             this.encoder = new Encoder();
 
@@ -60,10 +60,13 @@ namespace AudicaHTTPStatus
 		}
 	}
 
+
+
     internal static class Hooks {
         public static void ApplyHooks(HarmonyInstance instance) {
             instance.PatchAll(Assembly.GetExecutingAssembly());
         }
+
 
         // song selection + play state
         [HarmonyPatch(typeof(SongSelectItem), "OnSelect", new Type[0])]
@@ -75,22 +78,68 @@ namespace AudicaHTTPStatus
 
         [HarmonyPatch(typeof(ScoreKeeper), "Start", new Type[0])]
         public static class StartSongPatch {
-            public static void Postfix(ScoreKeeper __instance) {
+            public static void Postfix() {
+                AudicaHTTPStatus.AudicaTargetState.SongStart();
                 AudicaHTTPStatus.AudicaGameState.SongStart(AudicaHTTPStatus.selectedSongData);
             }
         }
 
         [HarmonyPatch(typeof(InGameUI), "Restart", new Type[0])]
         public static class RestartSongPatch {
-            public static void Postfix(InGameUI __instance) {
+            public static void Postfix() {
                 AudicaHTTPStatus.AudicaGameState.SongRestart();
             }
         }
 
         [HarmonyPatch(typeof(InGameUI), "ReturnToSongList", new Type[0])]
         public static class EndSongPatch {
-            public static void Postfix(InGameUI __instance) {
+            public static void Postfix() {
                 AudicaHTTPStatus.AudicaGameState.SongEnd();
+            }
+        }
+        
+
+        // target event handling
+        [HarmonyPatch(typeof(GameplayStats), "ReportTargetHit", new Type[] { typeof(SongCues.Cue), typeof(float), typeof(Vector2) })]
+        public static class TargetHitPatch {
+            public static void Postfix(ref GameplayStats __instance, ref SongCues.Cue cue, ref Vector2 targetHitPos) {
+                MelonLoader.MelonModLogger.Log("Target Hit! " + targetHitPos.ToString());
+                AudicaTargetHitState targetHit = AudicaHTTPStatus.AudicaTargetState.TargetHit(__instance, cue, targetHitPos);
+                // TODO: feed output into JSON parser then to HTTP server as websocket event
+            }
+        }
+
+        [HarmonyPatch(typeof(GameplayStats), "ReportShotNothing", new Type[0])]
+        public static class ShotNothingPatch {
+            public static void Postfix() {
+                MelonLoader.MelonModLogger.Log("Shot nothing!");
+                AudicaTargetFailState targetMiss = AudicaHTTPStatus.AudicaTargetState.TargetMiss();
+                // TODO: feed output into JSON parser then to HTTP server as websocket event
+            }
+        }
+
+        [HarmonyPatch(typeof(GameplayStats), "ReportTargetAimMiss", new Type[] { typeof(SongCues.Cue), typeof(Vector2) })]
+        public static class TargetAimMissPatch {
+            public static void Postfix() {
+                MelonLoader.MelonModLogger.Log("Target Miss (aim)!");
+                AudicaTargetFailState targetMiss = AudicaHTTPStatus.AudicaTargetState.TargetMissAim();
+                // TODO: feed output into JSON parser then to HTTP server as websocket event
+            }
+        }
+
+        [HarmonyPatch(typeof(GameplayStats), "ReportTargetEarlyLate", new Type[] { typeof(SongCues.Cue), typeof(float) })]
+        public static class TargetEarlyLatePatch {
+            public static void Postfix() {
+                MelonLoader.MelonModLogger.Log("Target Miss (timing)!");
+                //AudicaTargetFailState targetMiss = AudicaHTTPStatus.TargetState.TargetMissEarlyLate(tick);
+            }
+        }
+
+        [HarmonyPatch(typeof(GameplayStats), "ReportMisfire", new Type[0])]
+        public static class GunMisfirePatch {
+            public static void Postfix() {
+                MelonLoader.MelonModLogger.Log("Misfire!");
+                // TODO (event with hand that misfired?)
             }
         }
     }

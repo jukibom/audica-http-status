@@ -9,7 +9,6 @@ using UnityEngine;
 namespace AudicaHTTPStatus {
     class AudicaTargetStateManager {
         public static TargetTracker targetTracker;
-        public static GameplayStats gameplayStats;
 
         public AudicaTargetStateManager() { }
 
@@ -18,15 +17,14 @@ namespace AudicaHTTPStatus {
             this.initialiseStateManagers();
         }
 
-        public AudicaTargetHitState TargetHit(Vector2 targetHitPos) {
+        public AudicaTargetHitState TargetHit(GameplayStats gameplayStats, SongCues.Cue cue, Vector2 targetHitPos) {
             AudicaTargetHitState targetHit = new AudicaTargetHitState();
-            SongCues.Cue cue = AudicaTargetStateManager.targetTracker.mLastEitherHandTarget.target.GetCue();
 
             targetHit.targetIndex = cue.index;
             targetHit.type = this.cueToTargetType(cue);
             targetHit.hand = this.cueToHand(cue);
-            targetHit.timingScore = AudicaTargetStateManager.gameplayStats.GetLastTimingScore();
-            targetHit.aimScore = AudicaTargetStateManager.gameplayStats.GetLastAimScore();
+            targetHit.timingScore = gameplayStats.GetLastTimingScore();
+            targetHit.aimScore = gameplayStats.GetLastAimScore();
             targetHit.score = targetHit.timingScore + targetHit.aimScore;       // TODO: may need to multiply by combo? Need to test
             targetHit.tick = cue.tick;
             targetHit.targetHitPosition = targetHitPos;
@@ -70,7 +68,6 @@ namespace AudicaHTTPStatus {
 
         private void initialiseStateManagers() {
             AudicaTargetStateManager.targetTracker = UnityEngine.Object.FindObjectOfType<TargetTracker>();
-            AudicaTargetStateManager.gameplayStats = UnityEngine.Object.FindObjectOfType<GameplayStats>();
         }
 
         private string cueToTargetType(SongCues.Cue cue) {
