@@ -1,0 +1,43 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1082
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "audica-http-status", "audica-http-status\audica-http-status.csproj", "{B450DB87-100F-446D-BA5F-93B6E9042F46}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE} = {B357BAC7-529E-4D81-A0D2-71041B19C8DE}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "websocket-sharp", "websocket-sharp\websocket-sharp\websocket-sharp.csproj", "{B357BAC7-529E-4D81-A0D2-71041B19C8DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_Ubuntu|Any CPU = Debug_Ubuntu|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release_Ubuntu|Any CPU = Release_Ubuntu|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Debug_Ubuntu|Any CPU.ActiveCfg = Debug|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Debug_Ubuntu|Any CPU.Build.0 = Debug|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Release_Ubuntu|Any CPU.ActiveCfg = Release|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Release_Ubuntu|Any CPU.Build.0 = Release|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B450DB87-100F-446D-BA5F-93B6E9042F46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Debug_Ubuntu|Any CPU.ActiveCfg = Debug_Ubuntu|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Debug_Ubuntu|Any CPU.Build.0 = Debug_Ubuntu|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Release_Ubuntu|Any CPU.ActiveCfg = Release_Ubuntu|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Release_Ubuntu|Any CPU.Build.0 = Release_Ubuntu|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B357BAC7-529E-4D81-A0D2-71041B19C8DE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {19B6D20D-1926-40C8-B4BE-02CEA997B026}
+	EndGlobalSection
+EndGlobal
