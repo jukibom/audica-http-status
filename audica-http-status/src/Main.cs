@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
@@ -129,9 +129,9 @@ namespace AudicaHTTPStatus
 
         [HarmonyPatch(typeof(GameplayStats), "ReportTargetEarlyLate", new Type[] { typeof(SongCues.Cue), typeof(float) })]
         public static class TargetEarlyLatePatch {
-            public static void Postfix() {
+            public static void Postfix(float tick) {
                 MelonLoader.MelonModLogger.Log("Target Miss (timing)!");
-                //AudicaTargetFailState targetMiss = AudicaHTTPStatus.TargetState.TargetMissEarlyLate(tick);
+                AudicaTargetFailState targetMiss = AudicaHTTPStatus.AudicaTargetState.TargetMissEarlyLate(tick);
             }
         }
 
